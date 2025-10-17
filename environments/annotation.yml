@@ -1,0 +1,7 @@
+name: autocycler-nf-annotation
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - prokka=1.14.6
+  - bakta=1.11.4
