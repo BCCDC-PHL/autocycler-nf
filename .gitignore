@@ -1,0 +1,5 @@
+*~
+.nextflow*
+trace.tsv
+dev_scripts
+test_*

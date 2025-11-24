@@ -6,10 +6,14 @@ nextflow.enable.dsl = 2
 
 include { hash_files }                 from './modules/hash_files.nf'
 include { fastplong }                  from './modules/fastplong.nf'
-// include { fastp_json_to_csv }          from './modules/fastp.nf'
+// include { fastp_json_to_csv }          from './modules/fastplong.nf'
 include { autocycler_estimate_genome_size }     from './modules/autocycler.nf'
 include { autocycler_subsample }       from './modules/autocycler.nf'
 include { autocycler_assemble }        from './modules/autocycler.nf'
+include { autocycler_compress }        from './modules/autocycler.nf'
+include { autocycler_cluster }         from './modules/autocycler.nf'
+include { autocycler_trim_resolve }    from './modules/autocycler.nf'
+include { autocycler_combine }         from './modules/autocycler.nf'
 // include { prokka }                     from './modules/prokka.nf'
 // include { bakta }                      from './modules/bakta.nf'
 // include { bandage }                    from './modules/long_read_qc.nf'
@@ -38,17 +42,33 @@ workflow {
     }
 
     main:
+    ch_sample_ids = ch_fastq.map{ it -> it[0] }
     ch_provenance = ch_fastq.map{ it -> it[0] }
 
     hash_files(ch_fastq.combine(Channel.of("fastq-input")))
 
-    
     fastplong(ch_fastq)
+
     autocycler_estimate_genome_size(ch_fastq)
     ch_genome_size = autocycler_estimate_genome_size.out.genome_size
+
     autocycler_subsample(ch_fastq.join(ch_genome_size))
-    subsampled_reads = autocycler_subsample.out.subsampled_reads
-    autocycler_assemble(subsampled_reads.join(ch_genome_size).combine(ch_autocycler_assemblers))
+    ch_subsampled_reads = autocycler_subsample.out.subsampled_reads
+
+    autocycler_assemble(ch_subsampled_reads.join(ch_genome_size).combine(ch_autocycler_assemblers))
+    ch_assembly_dirs = autocycler_assemble.out.assembly_dir.groupTuple()
+
+    autocycler_compress(ch_assembly_dirs)
+    ch_autocycler_compress_out = autocycler_compress.out.autocycler_out
+
+    autocycler_cluster(ch_autocycler_compress_out)
+    ch_autocycler_cluster_out = autocycler_cluster.out.autocycler_out
+
+    autocycler_trim_resolve(ch_autocycler_cluster_out)
+    ch_autocycler_trim_resolve_out = autocycler_trim_resolve.out.autocycler_out
+
+    autocycler_combine(ch_autocycler_trim_resolve_out)
+    
 
     if (params.prokka) {
 	// prokka(assembly)

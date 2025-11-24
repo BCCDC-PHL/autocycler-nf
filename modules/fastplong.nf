@@ -2,7 +2,7 @@ process fastplong {
 
     tag { sample_id }
 
-    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_fastp.json", mode: 'copy'
+    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_fastplong.{json,html}", mode: 'copy'
 
     input:
     tuple val(sample_id), path(reads)
