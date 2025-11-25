@@ -15,7 +15,6 @@ def parse_transposed_quast_report(transposed_quast_report_path):
     field_lookup['Total length'] = 'total_length'
     field_lookup['# contigs'] = 'num_contigs'
     field_lookup['Largest contig'] = 'largest_contig'
-    field_lookup['GC (%)'] = 'gc_percent'
     field_lookup['N50'] = 'assembly_N50'
     field_lookup['N90'] = 'assembly_N90'
     field_lookup['L50'] = 'assembly_L50'
@@ -58,7 +57,6 @@ def parse_transposed_quast_report(transposed_quast_report_path):
     ]
 
     float_fields = [
-        'gc_percent',
         'num_N_per_100_kb',
     ]
 
@@ -98,7 +96,6 @@ def main():
     output_fieldnames = [
         'assembly_id',
         'total_length',
-        'gc_percent',
         'num_contigs',
         'largest_contig',
         'assembly_N50',
