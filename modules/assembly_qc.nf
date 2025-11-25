@@ -8,8 +8,7 @@ process quast {
     tuple val(sample_id), path(assembly)
 
     output:
-    tuple val(sample_id), path("${sample_id}_autocycler_long_quast.tsv"),   emit: tsv_report
-    tuple val(sample_id), path("${sample_id}_autocycler_long_quast.html"),  emit: html_report
+    tuple val(sample_id), path("${sample_id}_autocycler_long_quast.tsv"),   emit: tsv
     tuple val(sample_id), path("${sample_id}_quast_provenance.yml"),        emit: provenance
 
     script:
