@@ -14,6 +14,8 @@ include { autocycler_compress }        from './modules/autocycler.nf'
 include { autocycler_cluster }         from './modules/autocycler.nf'
 include { autocycler_trim_resolve }    from './modules/autocycler.nf'
 include { autocycler_combine }         from './modules/autocycler.nf'
+include { quast }                      from './modules/assembly_qc.nf'
+include { bandage }                    from './modules/assembly_qc.nf'
 // include { prokka }                     from './modules/prokka.nf'
 // include { bakta }                      from './modules/bakta.nf'
 // include { bandage }                    from './modules/long_read_qc.nf'
@@ -68,7 +70,12 @@ workflow {
     ch_autocycler_trim_resolve_out = autocycler_trim_resolve.out.autocycler_out
 
     autocycler_combine(ch_autocycler_trim_resolve_out)
-    
+    ch_assembly = autocycler_combine.out.consensus_assembly
+    ch_assembly_graph = autocycler_combine.out.consensus_assembly_graph
+
+    quast(ch_assembly)
+
+    bandage(ch_assembly_graph)
 
     if (params.prokka) {
 	// prokka(assembly)
@@ -78,7 +85,7 @@ workflow {
 	// bakta(assembly)
     }
 
-    //bandage(assembly_graph)
+    
 
 
     //

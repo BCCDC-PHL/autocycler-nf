@@ -229,6 +229,8 @@ process autocycler_combine {
 
     output:
     tuple val(sample_id), path("${sample_id}_autocycler_out"), path("${sample_id}_autocycler.stderr"),  emit: autocycler_out
+    tuple val(sample_id), path("${sample_id}_autocycler_long.fa"),                                      emit: consensus_assembly
+    tuple val(sample_id), path("${sample_id}_autocycler_long.gfa"),                                     emit: consensus_graph_assembly
     tuple val(sample_id), path("${sample_id}_autocycler_combine_provenance.yml"),                       emit: provenance
 
     script:
