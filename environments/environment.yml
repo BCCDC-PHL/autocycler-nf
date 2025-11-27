@@ -21,5 +21,6 @@ dependencies:
   - wtdbg=2.5                    # https://github.com/ruanjue/wtdbg2
   - parallel=20250822            # https://www.gnu.org/software/parallel
   - fastplong=0.4.1              # https://github.com/OpenGene/fastplong
-  - quast=5.3.0                  # https://quast.sourceforge.net/
+  - quast=5.3.0                  # https://github.com/ablab/quast
   - bandage=0.9.0                # https://github.com/rrwick/Bandage
+  - dnaapler=1.3.0               # https://github.com/gbouras13/dnaapler

@@ -14,6 +14,7 @@ include { autocycler_compress }        from './modules/autocycler.nf'
 include { autocycler_cluster }         from './modules/autocycler.nf'
 include { autocycler_trim_resolve }    from './modules/autocycler.nf'
 include { autocycler_combine }         from './modules/autocycler.nf'
+include { rotate_contigs }             from './modules/autocycler.nf'
 include { quast }                      from './modules/assembly_qc.nf'
 include { bandage }                    from './modules/assembly_qc.nf'
 // include { prokka }                     from './modules/prokka.nf'
@@ -33,7 +34,21 @@ workflow {
 	workflow.start,
     ])
 
-    ch_autocycler_assemblers = Channel.of("canu", "flye", "metamdbg", "miniasm", "necat", "nextdenovo", "plassembler", "raven")
+    valid_assemblers = [
+        "raven",
+	"myloasm",
+	"miniasm",
+	"flye",
+	"metamdbg",
+	"necat",
+	"nextdenovo",
+	"plassembler",
+	"canu"
+    ].toSet()
+
+    assemblers_list = file(params.assemblers_list).readLines().unique()
+    num_assemblers = assemblers_list.size()
+    ch_autocycler_assemblers = Channel.fromList(assemblers_list)
     
     ch_pipeline_provenance = pipeline_provenance(ch_workflow_metadata)
 
@@ -58,7 +73,7 @@ workflow {
     ch_subsampled_reads = autocycler_subsample.out.subsampled_reads
 
     autocycler_assemble(ch_subsampled_reads.join(ch_genome_size).combine(ch_autocycler_assemblers))
-    ch_assembly_dirs = autocycler_assemble.out.assembly_dir.groupTuple()
+    ch_assembly_dirs = autocycler_assemble.out.assembly_dir.groupTuple(size: num_assemblers)
 
     autocycler_compress(ch_assembly_dirs)
     ch_autocycler_compress_out = autocycler_compress.out.autocycler_out
@@ -73,16 +88,18 @@ workflow {
     ch_assembly = autocycler_combine.out.consensus_assembly
     ch_assembly_graph = autocycler_combine.out.consensus_assembly_graph
 
+    rotate_contigs(ch_assembly)
+
     quast(ch_assembly)
 
     bandage(ch_assembly_graph)
 
     if (params.prokka) {
-	// prokka(assembly)
+	// prokka(ch_assembly)
     }
 
     if (params.bakta) {
-	// bakta(assembly)
+	// bakta(ch_assembly)
     }
 
     
