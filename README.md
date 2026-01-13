@@ -21,16 +21,15 @@ nextflow run BCCDC-PHL/autocycler-nf \
 By default, the pipeline will divide the input fastqs into 4 subsamples and assemble each subsample using the following assemblers:
 
 ```
-raven
-myloasm
-miniasm
+canu
 flye
 metamdbg
+miniasm
 necat
 nextdenovo
 plassembler
-canu
+raven
 ```
 
-...resulting in 4 x 9 = 36 assemblies for each sample, which are combined into a final 'consensus assembly'.
+...resulting in 4 x 8 = 32 assemblies for each sample, which are combined into a final 'consensus assembly'.
 

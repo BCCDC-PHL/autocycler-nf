@@ -1,9 +1,8 @@
-raven
-myloasm
-miniasm
+canu
 flye
 metamdbg
+miniasm
 necat
 nextdenovo
 plassembler
-canu
+raven
