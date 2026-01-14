@@ -54,3 +54,29 @@ nextflow run BCCDC-PHL/autocycler-nf \
   --fastq_input_long /path/to/your/fastqs \
   --outdir /path/to/your/outputs
 ```
+
+### Read Types
+
+By default, this pipeline assumes that the input reads are from an Oxford Nanopore sequencer,
+using an R10-series flowcell (`ont_r10`).
+
+Alternate read types can be indicated using the `--read_type` flag, for example:
+
+```
+nextflow run BCCDC-PHL/autocycler-nf \
+  -profile conda \
+  --cache ~/.conda/envs \
+  --read_type ont_r9 \
+  --fastq_input_long /path/to/your/fastqs \
+  --outdir /path/to/your/outputs
+```
+
+Supported read types are:
+
+```
+ont_r9
+ont_r10
+pacbio_clr
+pacbio_hifi
+```
+

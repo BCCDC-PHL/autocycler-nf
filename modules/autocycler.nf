@@ -30,12 +30,15 @@ process autocycler_subsample {
 
     tag { sample_id }
 
+    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_read_metrics.tsv", mode: 'copy'
+
     input:
     tuple val(sample_id), path(reads), path(genome_size_estimate)
 
     output:
     tuple val(sample_id), path("${sample_id}_subsampled_reads"),                    emit: subsampled_reads
     tuple val(sample_id), path("${sample_id}_autocycler_subsample.log"),            emit: log
+    tuple val(sample_id), path("${sample_id}_read_metrics.tsv"),                    emit: read_metrics
     tuple val(sample_id), path("${sample_id}_autocycler_subsample_provenance.yml"), emit: provenance
 
     script:
@@ -51,6 +54,9 @@ process autocycler_subsample {
       --out_dir ${sample_id}_subsampled_reads \
       --genome_size \$(cat ${genome_size_estimate}) \
       2>> ${sample_id}_autocycler_subsample.log
+
+    autocycler table | cut -d \$'\t' -f 1-4 > ${sample_id}_read_metrics.tsv
+    autocycler table --autocycler_dir ${sample_id}_subsampled_reads -n ${sample_id} | cut -d \$'\t' -f 1-4 >> ${sample_id}_read_metrics.tsv
     """
 }
 
@@ -58,6 +64,8 @@ process autocycler_subsample {
 process autocycler_assemble {
 
     tag { sample_id + ' / ' + assembler }
+
+    publishDir "${params.outdir}/${sample_id}/${sample_id}_autocycler_input_assemblies", pattern: "${sample_id}_assemblies_${assembler}", mode: 'copy'
 
     input:
     tuple val(sample_id), path(subsampled_reads), path(genome_size_estimate), val(assembler)
@@ -90,7 +98,6 @@ process autocycler_assemble {
     parallel --jobs ${params.num_read_subsamples} \
         --joblog ${sample_id}_assemblies_${assembler}/joblog.tsv \
 	--results ${sample_id}_assemblies_${assembler}/logs \
-	--timeout "12h" \
 	< ${sample_id}_assemblies_${assembler}/jobs.txt
 
 
@@ -125,8 +132,6 @@ process autocycler_assemble {
 process autocycler_compress {
 
     tag { sample_id }
-
-    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_input_assemblies",            mode: 'copy'
 
     input:
     tuple val(sample_id), path(assembly_dirs)   
@@ -223,8 +228,7 @@ process autocycler_combine {
     tag { sample_id }
 
     publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_autocycler_out",              mode: 'copy'
-    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_consensus_assembly.{fa,gfa}", mode: 'copy'
-    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_metrics.tsv",                 mode: 'copy'
+    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_assembly_metrics.tsv",        mode: 'copy'
     publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_autocycler.stderr",           mode: 'copy'
 
     input:
@@ -232,9 +236,9 @@ process autocycler_combine {
 
     output:
     tuple val(sample_id), path("${sample_id}_autocycler_out"), path("${sample_id}_autocycler.stderr"),  emit: autocycler_out
-    tuple val(sample_id), path("${sample_id}_consensus_assembly.fa"),                                      emit: consensus_assembly
-    tuple val(sample_id), path("${sample_id}_consensus_assembly.gfa"),                                     emit: consensus_assembly_graph
-    tuple val(sample_id), path("${sample_id}_metrics.tsv"),                                             emit: assembly_metrics
+    tuple val(sample_id), path("${sample_id}_consensus_assembly.fa"),                                   emit: consensus_assembly
+    tuple val(sample_id), path("${sample_id}_consensus_assembly.gfa"),                                  emit: consensus_assembly_graph
+    tuple val(sample_id), path("${sample_id}_assembly_metrics.tsv"),                                    emit: assembly_metrics
     tuple val(sample_id), path("${sample_id}_autocycler_combine_provenance.yml"),                       emit: provenance
 
     script:
@@ -254,8 +258,8 @@ process autocycler_combine {
     cp ${sample_id}_autocycler_out/consensus_assembly.fasta ${sample_id}_consensus_assembly.fa
     cp ${sample_id}_autocycler_out/consensus_assembly.gfa ${sample_id}_consensus_assembly.gfa
 
-    autocycler table > ${sample_id}_metrics.tsv
-    autocycler table --autocycler_dir ${sample_id}_autocycler_out -n ${sample_id} >> ${sample_id}_metrics.tsv
+    autocycler table | cut -d \$'\t' -f 1,5- > ${sample_id}_assembly_metrics.tsv
+    autocycler table --autocycler_dir ${sample_id}_autocycler_out -n ${sample_id} | cut -d \$'\t' -f 1,5- >> ${sample_id}_assembly_metrics.tsv
     """
 }
 
@@ -264,15 +268,15 @@ process reorient_contigs {
 
     tag { sample_id }
 
-    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_final_assembly.{fa,gfa}",   mode: 'copy'
+    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_autocycler_long.{fa,gfa}",   mode: 'copy'
     publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_reorientation_summary.tsv", mode: 'copy'
    
     input:
     tuple val(sample_id), path(assembly_graph)
 
     output:
-    tuple val(sample_id), path("${sample_id}_final_assembly.fa"),               emit: assembly
-    tuple val(sample_id), path("${sample_id}_final_assembly.gfa"),              emit: assembly_graph
+    tuple val(sample_id), path("${sample_id}_autocycler_long.fa"),              emit: assembly
+    tuple val(sample_id), path("${sample_id}_autocycler_long.gfa"),             emit: assembly_graph
     tuple val(sample_id), path("${sample_id}_reorientation_summary.tsv"),       emit: reorientation_summary
     tuple val(sample_id), path("${sample_id}_reorient_contigs_provenance.yml"), emit: provenance
 
@@ -290,10 +294,10 @@ process reorient_contigs {
         --input ${assembly_graph} \
         --output dnaapler_out
 
-    cp dnaapler_out/${sample_id}_reoriented.gfa ./${sample_id}_final_assembly.gfa
+    cp dnaapler_out/${sample_id}_reoriented.gfa ./${sample_id}_autocycler_long.gfa
 
     cp dnaapler_out/${sample_id}_all_reorientation_summary.tsv ./${sample_id}_reorientation_summary.tsv
 
-    autocycler gfa2fasta -i dnaapler_out/${sample_id}_reoriented.gfa -o ${sample_id}_final_assembly.fa
+    autocycler gfa2fasta -i dnaapler_out/${sample_id}_reoriented.gfa -o ${sample_id}_autocycler_long.fa
     """
 }
