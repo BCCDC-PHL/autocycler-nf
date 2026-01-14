@@ -6,6 +6,30 @@ A pipeline for running [rrwick/Autocycler](https://github.com/rrwick/Autocycler)
 
 In active development. Not ready for use.
 
+## Analyses
+
+```mermaid
+flowchart TD
+  long_reads --> fastplong(filtlong)
+  fastplong --> trimmed_reads["trimmed_reads"]
+  trimmed_reads --> estimate_genome_size(estimate_genome_size)
+  trimmed_reads --> autocycler_subsample(autocycler_subsample)
+  estimate_genome_size -- genome_size_estimate --> autocycler_subsample
+  autocycler_subsample --> subsampled_reads["subsampled_reads.fastq"]
+  subsampled_reads --> autocycler_assemble(autocycler_assemble)
+  autocycler_assemble --> autocycler_compress(autocycler_compress)
+  autocycler_compress --> autocycler_cluster(autocycler_cluster)
+  autocycler_cluster --> autocycler_trim_resolve(autocycler_trim_resolve)
+  autocycler_trim_resolve --> autocycler_combine(autocycler_combine)
+  autocycler_combine --> assembly_metrics["metrics.tsv"]
+  autocycler_combine --> reorient_contigs(reorient_contigs)
+  reorient_contigs --> complete_assembly["complete_assembly.fa"]
+  complete_assembly --> quast(quast)
+  complete_assembly --> bandage(bandage)
+  bandage --> bandage_diagram["bandage_diagram.png"]
+  quast --> assembly_qc["assembly_qc.csv"]
+```
+
 ## Usage
 
 ### Basic usage

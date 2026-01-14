@@ -44,7 +44,8 @@ workflow {
 	"necat",
 	"nextdenovo",
 	"plassembler",
-	"canu"
+	"canu",
+	"lja"
     ].toSet()
 
     assemblers_list = file(params.assemblers_list).readLines().unique()
@@ -66,11 +67,12 @@ workflow {
     hash_files(ch_fastq.combine(Channel.of("fastq-input")))
 
     fastplong(ch_fastq)
+    ch_trimmed_reads = fastplong.out.trimmed_reads
 
-    autocycler_estimate_genome_size(ch_fastq)
+    autocycler_estimate_genome_size(ch_trimmed_reads)
     ch_genome_size = autocycler_estimate_genome_size.out.genome_size
 
-    autocycler_subsample(ch_fastq.join(ch_genome_size))
+    autocycler_subsample(ch_trimmed_reads.join(ch_genome_size))
     ch_subsampled_reads = autocycler_subsample.out.subsampled_reads
 
     autocycler_assemble(ch_subsampled_reads.join(ch_genome_size).combine(ch_autocycler_assemblers))

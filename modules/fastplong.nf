@@ -8,10 +8,10 @@ process fastplong {
     tuple val(sample_id), path(reads)
 
     output:
-    tuple val(sample_id), path("${sample_id}_RL.trim.fastq.gz"), emit: trimmed_reads
-    tuple val(sample_id), path("${sample_id}_fastplong.json"), emit: json
-    tuple val(sample_id), path("${sample_id}_fastplong.html"), emit: html
-    tuple val(sample_id), path("${sample_id}_fastplong.csv"), emit: csv
+    tuple val(sample_id), path("${sample_id}_RL.trim.fastq.gz"),         emit: trimmed_reads
+    tuple val(sample_id), path("${sample_id}_fastplong.json"),           emit: json
+    tuple val(sample_id), path("${sample_id}_fastplong.html"),           emit: html
+    tuple val(sample_id), path("${sample_id}_fastplong.csv"),            emit: csv
     tuple val(sample_id), path("${sample_id}_fastplong_provenance.yml"), emit: provenance
     
 
