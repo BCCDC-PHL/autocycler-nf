@@ -55,8 +55,8 @@ process autocycler_subsample {
       --genome_size \$(cat ${genome_size_estimate}) \
       2>> ${sample_id}_autocycler_subsample.log
 
-    autocycler table | cut -d \$'\t' -f 1-4 > ${sample_id}_read_metrics.tsv
-    autocycler table --autocycler_dir ${sample_id}_subsampled_reads -n ${sample_id} | cut -d \$'\t' -f 1-4 >> ${sample_id}_read_metrics.tsv
+    autocycler table | cut -f 1-4 > ${sample_id}_read_metrics.tsv
+    autocycler table --autocycler_dir ${sample_id}_subsampled_reads -n ${sample_id} | cut -f 1-4 >> ${sample_id}_read_metrics.tsv
     """
 }
 
@@ -258,8 +258,8 @@ process autocycler_combine {
     cp ${sample_id}_autocycler_out/consensus_assembly.fasta ${sample_id}_consensus_assembly.fa
     cp ${sample_id}_autocycler_out/consensus_assembly.gfa ${sample_id}_consensus_assembly.gfa
 
-    autocycler table | cut -d \$'\t' -f 1,5- > ${sample_id}_assembly_metrics.tsv
-    autocycler table --autocycler_dir ${sample_id}_autocycler_out -n ${sample_id} | cut -d \$'\t' -f 1,5- >> ${sample_id}_assembly_metrics.tsv
+    autocycler table | cut -f 1,5- > ${sample_id}_assembly_metrics.tsv
+    autocycler table --autocycler_dir ${sample_id}_autocycler_out -n ${sample_id} | cut -f 1,5- >> ${sample_id}_assembly_metrics.tsv
     """
 }
 
@@ -299,5 +299,26 @@ process reorient_contigs {
     cp dnaapler_out/${sample_id}_all_reorientation_summary.tsv ./${sample_id}_reorientation_summary.tsv
 
     autocycler gfa2fasta -i dnaapler_out/${sample_id}_reoriented.gfa -o ${sample_id}_autocycler_long.fa
+    """
+}
+
+
+process combine_metrics {
+
+    tag { sample_id }
+
+    executor 'local'
+
+    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_metrics.tsv",   mode: 'copy'
+   
+    input:
+    tuple val(sample_id), path(read_metrics), path(assembly_metrics)
+
+    output:
+    tuple val(sample_id), path("${sample_id}_metrics.tsv"),  emit: assembly
+
+    script:
+    """
+    paste ${read_metrics} <(cut -f 2- ${assembly_metrics}) > ${sample_id}_metrics.tsv
     """
 }

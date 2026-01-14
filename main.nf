@@ -4,24 +4,25 @@ import java.time.LocalDateTime
 
 nextflow.enable.dsl = 2
 
-include { hash_files }                 from './modules/hash_files.nf'
-include { fastplong }                  from './modules/fastplong.nf'
-// include { fastp_json_to_csv }          from './modules/fastplong.nf'
-include { autocycler_estimate_genome_size }     from './modules/autocycler.nf'
-include { autocycler_subsample }       from './modules/autocycler.nf'
-include { autocycler_assemble }        from './modules/autocycler.nf'
-include { autocycler_compress }        from './modules/autocycler.nf'
-include { autocycler_cluster }         from './modules/autocycler.nf'
-include { autocycler_trim_resolve }    from './modules/autocycler.nf'
-include { autocycler_combine }         from './modules/autocycler.nf'
-include { reorient_contigs }             from './modules/autocycler.nf'
-include { quast }                      from './modules/assembly_qc.nf'
-include { bandage }                    from './modules/assembly_qc.nf'
-// include { prokka }                     from './modules/prokka.nf'
-// include { bakta }                      from './modules/bakta.nf'
-// include { bandage }                    from './modules/long_read_qc.nf'
-include { pipeline_provenance }        from './modules/provenance.nf'
-include { collect_provenance }         from './modules/provenance.nf'
+include { hash_files }                      from './modules/hash_files.nf'
+include { fastplong }                       from './modules/fastplong.nf'
+// include { fastp_json_to_csv }            from './modules/fastplong.nf'
+include { autocycler_estimate_genome_size } from './modules/autocycler.nf'
+include { autocycler_subsample }            from './modules/autocycler.nf'
+include { autocycler_assemble }             from './modules/autocycler.nf'
+include { autocycler_compress }             from './modules/autocycler.nf'
+include { autocycler_cluster }              from './modules/autocycler.nf'
+include { autocycler_trim_resolve }         from './modules/autocycler.nf'
+include { autocycler_combine }              from './modules/autocycler.nf'
+include { reorient_contigs }                from './modules/autocycler.nf'
+include { combine_metrics }                 from './modules/autocycler.nf'
+include { quast }                           from './modules/assembly_qc.nf'
+include { bandage }                         from './modules/assembly_qc.nf'
+// include { prokka }                       from './modules/prokka.nf'
+// include { bakta }                        from './modules/bakta.nf'
+// include { bandage }                      from './modules/long_read_qc.nf'
+include { pipeline_provenance }             from './modules/provenance.nf'
+include { collect_provenance }              from './modules/provenance.nf'
 
 
 workflow {
@@ -91,6 +92,10 @@ workflow {
     reorient_contigs(ch_assembly_graph)
     ch_reoriented_assembly = reorient_contigs.out.assembly
     ch_reoriented_assembly_graph = reorient_contigs.out.assembly_graph
+
+    ch_read_metrics = autocycler_subsample.out.read_metrics
+    ch_assembly_metrics = autocycler_combine.out.assembly_metrics
+    combine_metrics(ch_read_metrics.join(ch_assembly_metrics))
 
     quast(ch_reoriented_assembly)
 
