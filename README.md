@@ -33,3 +33,24 @@ raven
 
 ...resulting in 4 x 8 = 32 assemblies for each sample, which are combined into a final 'consensus assembly'.
 
+### Custom Assemblers List
+
+A customized assemblers list can be supplied using the `--assemblers_list` flag. For example, a file named `assemblers.txt` containing:
+
+```
+flye
+raven
+miniasm
+plassembler
+```
+
+...can be supplied to the pipeline as follows:
+
+```
+nextflow run BCCDC-PHL/autocycler-nf \
+  -profile conda \
+  --cache ~/.conda/envs \
+  --assemblers_list assemblers.txt \
+  --fastq_input_long /path/to/your/fastqs \
+  --outdir /path/to/your/outputs
+```

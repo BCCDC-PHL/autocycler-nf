@@ -6,7 +6,7 @@ import json
 import sys
 
 def main(args):
-    with open(args.fastp_json, 'r') as f:
+    with open(args.fastplong_json, 'r') as f:
         fastp_report = json.load(f)
 
     total_reads_before_filtering = fastp_report['summary']['before_filtering']['total_reads']

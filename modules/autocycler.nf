@@ -102,14 +102,14 @@ process autocycler_assemble {
         done
     fi
 
-    # Give circular contigs from canu extra clustering weight
+    # Give circular contigs from canu extra consensus weight
     if [ "${assembler}" = "canu" ]; then
         for f in ${sample_id}_assemblies_${assembler}/canu*.fasta; do
             sed -i 's/^>.*\$/& Autocycler_consensus_weight=2/' "\$f"
         done
     fi
 
-    # Give circular contigs from flye extra clustering weight
+    # Give circular contigs from flye extra consensus weight
     if [ "${assembler}" = "flye" ]; then
         for f in ${sample_id}_assemblies_${assembler}/flye*.fasta; do
             sed -i 's/^>.*\$/& Autocycler_consensus_weight=2/' "\$f"
@@ -222,17 +222,19 @@ process autocycler_combine {
 
     tag { sample_id }
 
-    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_autocycler_out",            mode: 'copy'
-    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_autocycler_long.{fa,gfa}",  mode: 'copy'
-    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_autocycler.stderr",         mode: 'copy'
+    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_autocycler_out",              mode: 'copy'
+    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_consensus_assembly.{fa,gfa}", mode: 'copy'
+    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_metrics.tsv",                 mode: 'copy'
+    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_autocycler.stderr",           mode: 'copy'
 
     input:
     tuple val(sample_id), path(autocycler_out), path(autocycler_stderr)
 
     output:
     tuple val(sample_id), path("${sample_id}_autocycler_out"), path("${sample_id}_autocycler.stderr"),  emit: autocycler_out
-    tuple val(sample_id), path("${sample_id}_autocycler_long.fa"),                                      emit: consensus_assembly
-    tuple val(sample_id), path("${sample_id}_autocycler_long.gfa"),                                     emit: consensus_assembly_graph
+    tuple val(sample_id), path("${sample_id}_consensus_assembly.fa"),                                      emit: consensus_assembly
+    tuple val(sample_id), path("${sample_id}_consensus_assembly.gfa"),                                     emit: consensus_assembly_graph
+    tuple val(sample_id), path("${sample_id}_metrics.tsv"),                                             emit: assembly_metrics
     tuple val(sample_id), path("${sample_id}_autocycler_combine_provenance.yml"),                       emit: provenance
 
     script:
@@ -249,34 +251,49 @@ process autocycler_combine {
 	2>> ${sample_id}_autocycler.stderr
 
 
-    cp ${sample_id}_autocycler_out/consensus_assembly.fasta ${sample_id}_autocycler_long.fa
-    cp ${sample_id}_autocycler_out/consensus_assembly.gfa ${sample_id}_autocycler_long.gfa
+    cp ${sample_id}_autocycler_out/consensus_assembly.fasta ${sample_id}_consensus_assembly.fa
+    cp ${sample_id}_autocycler_out/consensus_assembly.gfa ${sample_id}_consensus_assembly.gfa
+
+    autocycler table > ${sample_id}_metrics.tsv
+    autocycler table --autocycler_dir ${sample_id}_autocycler_out -n ${sample_id} >> ${sample_id}_metrics.tsv
     """
 }
 
 
-process rotate_contigs {
+process reorient_contigs {
 
     tag { sample_id }
 
+    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_final_assembly.{fa,gfa}",   mode: 'copy'
+    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_reorientation_summary.tsv", mode: 'copy'
+   
     input:
-    tuple val(sample_id), path(assembly)
+    tuple val(sample_id), path(assembly_graph)
 
     output:
-    val(sample_id)
+    tuple val(sample_id), path("${sample_id}_final_assembly.fa"),               emit: assembly
+    tuple val(sample_id), path("${sample_id}_final_assembly.gfa"),              emit: assembly_graph
+    tuple val(sample_id), path("${sample_id}_reorientation_summary.tsv"),       emit: reorientation_summary
+    tuple val(sample_id), path("${sample_id}_reorient_contigs_provenance.yml"), emit: provenance
 
     script:
     """
-    printf -- "- process_name: rotate_contigs\\n"                                 >> ${sample_id}_rotate_contigs_provenance.yml
-    printf -- "  tools:\\n"                                                       >> ${sample_id}_rotate_contigs_provenance.yml
-    printf -- "    - tool_name: dnaapler\\n"                                      >> ${sample_id}_rotate_contigs_provenance.yml
-    printf -- "      tool_version: \$(dnaapler --version | cut -d ' ' -f 3)\\n"   >> ${sample_id}_rotate_contigs_provenance.yml
-    printf -- "      subcommand: all\\n"   >> ${sample_id}_rotate_contigs_provenance.yml
+    printf -- "- process_name: reorient_contigs\\n"                               >> ${sample_id}_reorient_contigs_provenance.yml
+    printf -- "  tools:\\n"                                                       >> ${sample_id}_reorient_contigs_provenance.yml
+    printf -- "    - tool_name: dnaapler\\n"                                      >> ${sample_id}_reorient_contigs_provenance.yml
+    printf -- "      tool_version: \$(dnaapler --version | cut -d ' ' -f 3)\\n"   >> ${sample_id}_reorient_contigs_provenance.yml
+    printf -- "      subcommand: all\\n"                                          >> ${sample_id}_reorient_contigs_provenance.yml
 
     dnaapler all \
         --threads ${task.cpus} \
         --prefix ${sample_id} \
-        --input ${assembly} \
-        --output dnaapler_out 
+        --input ${assembly_graph} \
+        --output dnaapler_out
+
+    cp dnaapler_out/${sample_id}_reoriented.gfa ./${sample_id}_final_assembly.gfa
+
+    cp dnaapler_out/${sample_id}_all_reorientation_summary.tsv ./${sample_id}_reorientation_summary.tsv
+
+    autocycler gfa2fasta -i dnaapler_out/${sample_id}_reoriented.gfa -o ${sample_id}_final_assembly.fa
     """
 }

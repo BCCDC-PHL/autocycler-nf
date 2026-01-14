@@ -14,7 +14,7 @@ include { autocycler_compress }        from './modules/autocycler.nf'
 include { autocycler_cluster }         from './modules/autocycler.nf'
 include { autocycler_trim_resolve }    from './modules/autocycler.nf'
 include { autocycler_combine }         from './modules/autocycler.nf'
-include { rotate_contigs }             from './modules/autocycler.nf'
+include { reorient_contigs }             from './modules/autocycler.nf'
 include { quast }                      from './modules/assembly_qc.nf'
 include { bandage }                    from './modules/assembly_qc.nf'
 // include { prokka }                     from './modules/prokka.nf'
@@ -88,11 +88,13 @@ workflow {
     ch_assembly = autocycler_combine.out.consensus_assembly
     ch_assembly_graph = autocycler_combine.out.consensus_assembly_graph
 
-    rotate_contigs(ch_assembly)
+    reorient_contigs(ch_assembly_graph)
+    ch_reoriented_assembly = reorient_contigs.out.assembly
+    ch_reoriented_assembly_graph = reorient_contigs.out.assembly_graph
 
-    quast(ch_assembly)
+    quast(ch_reoriented_assembly)
 
-    bandage(ch_assembly_graph)
+    bandage(ch_reoriented_assembly_graph)
 
     if (params.prokka) {
 	// prokka(ch_assembly)
