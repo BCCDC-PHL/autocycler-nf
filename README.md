@@ -10,8 +10,8 @@ In active development. Not ready for use.
 
 ```mermaid
 flowchart TD
-  long_reads --> fastplong(filtlong)
-  fastplong --> trimmed_reads["trimmed_reads"]
+  long_reads --> fastplong(fastplong)
+	fastplong --> trimmed_reads["trimmed_reads.fastq"]
   trimmed_reads --> estimate_genome_size(estimate_genome_size)
   trimmed_reads --> autocycler_subsample(autocycler_subsample)
   estimate_genome_size -- genome_size_estimate --> autocycler_subsample
@@ -24,8 +24,9 @@ flowchart TD
   autocycler_combine --> assembly_metrics["metrics.tsv"]
   autocycler_combine --> reorient_contigs(reorient_contigs)
   reorient_contigs --> complete_assembly["complete_assembly.fa"]
+  reorient_contigs --> complete_graph_assembly["complete_assembly.gfa"]
   complete_assembly --> quast(quast)
-  complete_assembly --> bandage(bandage)
+  complete_graph_assembly --> bandage(bandage)
   bandage --> bandage_diagram["bandage_diagram.png"]
   quast --> assembly_qc["assembly_qc.csv"]
 ```
@@ -104,3 +105,21 @@ pacbio_clr
 pacbio_hifi
 ```
 
+## Outputs
+
+Below the directory supplied to the `--outdir` flag, one output directory will be created for each sample.
+Within that directory, the following outputs will be created:
+
+
+```
+<sample_id>_<timestamp>_provenance.yml
+<sample_id>_autocycler_genome_size_estimate
+<sample_id>_autocycler_input_assemblies
+<sample_id>_autocycler_out
+<sample_id>_autocycler_long.fa
+<sample_id>_autocycler_long.gfa
+<sample_id>_fastplong.csv
+<sample_id>_fastplong.html
+<sample_id>_fastplong.json
+<sample_id>_metrics.tsv
+```
