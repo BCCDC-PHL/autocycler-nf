@@ -113,13 +113,17 @@ Within that directory, the following outputs will be created:
 
 ```
 <sample_id>_<timestamp>_provenance.yml
-<sample_id>_autocycler_genome_size_estimate
+<sample_id>_autocycler_genome_size_estimate.txt
 <sample_id>_autocycler_input_assemblies
 <sample_id>_autocycler_out
 <sample_id>_autocycler_long.fa
 <sample_id>_autocycler_long.gfa
+<sample_id>_autocycler_long_bandage.png
+<sample_id>_autocycler_long_quast.tsv
+<sample_id>_autocycler_metrics.tsv
+<sample_id>_autocycler_out
 <sample_id>_fastplong.csv
 <sample_id>_fastplong.html
 <sample_id>_fastplong.json
-<sample_id>_autocycler_metrics.tsv
+<sample_id>_reorientation_summary.tsv
 ```
