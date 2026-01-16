@@ -30,8 +30,6 @@ process autocycler_subsample {
 
     tag { sample_id }
 
-    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_read_metrics.tsv", mode: 'copy'
-
     input:
     tuple val(sample_id), path(reads), path(genome_size_estimate)
 
@@ -228,7 +226,6 @@ process autocycler_combine {
     tag { sample_id }
 
     publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_autocycler_out",              mode: 'copy'
-    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_assembly_metrics.tsv",        mode: 'copy'
     publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_autocycler.stderr",           mode: 'copy'
 
     input:
@@ -309,16 +306,16 @@ process combine_metrics {
 
     executor 'local'
 
-    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_metrics.tsv",   mode: 'copy'
+    publishDir "${params.outdir}/${sample_id}", pattern: "${sample_id}_autocycler_metrics.tsv",   mode: 'copy'
    
     input:
     tuple val(sample_id), path(read_metrics), path(assembly_metrics)
 
     output:
-    tuple val(sample_id), path("${sample_id}_metrics.tsv"),  emit: assembly
+    tuple val(sample_id), path("${sample_id}_autocycler_metrics.tsv"),  emit: metrics
 
     script:
     """
-    paste ${read_metrics} <(cut -f 2- ${assembly_metrics}) > ${sample_id}_metrics.tsv
+    paste ${read_metrics} <(cut -f 2- ${assembly_metrics}) > ${sample_id}_autocycler_metrics.tsv
     """
 }

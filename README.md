@@ -121,5 +121,5 @@ Within that directory, the following outputs will be created:
 <sample_id>_fastplong.csv
 <sample_id>_fastplong.html
 <sample_id>_fastplong.json
-<sample_id>_metrics.tsv
+<sample_id>_autocycler_metrics.tsv
 ```
