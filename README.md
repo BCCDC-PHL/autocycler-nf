@@ -11,7 +11,7 @@ In active development. Not ready for use.
 ```mermaid
 flowchart TD
   long_reads --> fastplong(fastplong)
-	fastplong --> trimmed_reads["trimmed_reads.fastq"]
+  fastplong --> trimmed_reads["trimmed_reads.fastq"]
   trimmed_reads --> estimate_genome_size(estimate_genome_size)
   trimmed_reads --> autocycler_subsample(autocycler_subsample)
   estimate_genome_size -- genome_size_estimate --> autocycler_subsample
@@ -32,6 +32,28 @@ flowchart TD
 ```
 
 ## Usage
+
+### Setup: plassembler db
+
+On first run, nextflow will create a conda environment under:
+
+```
+~/.conda/envs/autocycler-nf-8ed3479f16f7cddefa432798c26d6ec1
+```
+
+The pipeline currently expects to find a `plassembler_db` directory inside that directory.
+
+Activate the conda env:
+
+```
+conda activate autocycler-nf-8ed3479f16f7cddefa432798c26d6ec1
+```
+
+...then use plassembler to download the database to the expected location:
+
+```
+plassembler download -d ~/.conda/envs/autocycler-nf-8ed3479f16f7cddefa432798c26d6ec1/plassembler_db
+```
 
 ### Basic usage
 
