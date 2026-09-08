@@ -51,6 +51,9 @@ process autocycler_subsample {
       --reads ${reads[0]} \
       --out_dir ${sample_id}_subsampled_reads \
       --genome_size \$(cat ${genome_size_estimate}) \
+      --seed ${params.seed} \
+      --count ${params.num_read_subsamples} \
+      --min_read_depth ${params.min_read_depth} \
       2>> ${sample_id}_autocycler_subsample.log
 
     autocycler table | cut -f 1-4 > ${sample_id}_read_metrics.tsv
