@@ -1,0 +1,4 @@
+sample,fastq
+sampleA,Sample_A_barcodexx_RL.fastq.gz
+sampleB,Sample_B_barcodexx_RL.fastq
+sampleC,Sample_C_barcodexx_RL.fastq.gz
