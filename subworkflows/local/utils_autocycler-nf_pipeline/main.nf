@@ -11,9 +11,6 @@
 include { UTILS_NFSCHEMA_PLUGIN     } from '../../nf-core/utils_nfschema_plugin'
 include { paramsSummaryMap          } from 'plugin/nf-schema'
 include { samplesheetToList         } from 'plugin/nf-schema'
-include { completionSummary         } from '../../nf-core/utils_nfcore_pipeline'
-include { imNotification            } from '../../nf-core/utils_nfcore_pipeline'
-include { UTILS_NFCORE_PIPELINE     } from '../../nf-core/utils_nfcore_pipeline'
 include { UTILS_NEXTFLOW_PIPELINE   } from '../../nf-core/utils_nextflow_pipeline'
 
 /*
@@ -55,12 +52,7 @@ workflow PIPELINE_INITIALISATION {
         null
     )
 
-    //
-    // Check config provided to the pipeline
-    //
-    UTILS_NFCORE_PIPELINE (
-        nextflow_cli_args
-    )
+    
 
     //
     // Create channel from input file provided through params.input
@@ -95,16 +87,6 @@ workflow PIPELINE_COMPLETION {
     main:
     summary_params = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
 
-    //
-    // Completion email and summary
-    //
-    workflow.onComplete {
-
-        completionSummary(monochrome_logs)
-        if (hook_url) {
-            imNotification(summary_params, hook_url)
-        }
-    }
 
     workflow.onError {
         log.error "Pipeline failed."
