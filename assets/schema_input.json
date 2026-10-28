@@ -1,0 +1,26 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/BCCDC-PHL/autocycler-nf/master/assets/schema_input.json",
+    "title": "BCCDC-PHL/autocycler-nf pipeline - params.input schema",
+    "description": "Schema for the file provided with params.input",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "sample": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Sample name must be provided and cannot contain spaces",
+                "meta": ["id"]
+            },
+            "fastq": {
+                "type": "string",
+                "format": "file-path",
+                "exists": true,
+                "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.fastq(\\.gz)?$",
+                "errorMessage": "FASTQ file for sample must be provided, cannot contain spaces and must have extension '.fastq.gz' or '.fastq'"
+            }
+        },
+        "required": ["sample", "fastq"]
+    }
+}
