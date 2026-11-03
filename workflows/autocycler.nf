@@ -18,6 +18,7 @@ include { reorient_contigs }                from '../modules/autocycler.nf'
 include { combine_metrics }                 from '../modules/autocycler.nf'
 include { quast }                           from '../modules/assembly_qc.nf'
 include { bandage }                         from '../modules/assembly_qc.nf'
+include { checkm2 }                         from '../modules/checkm2/checkm2.nf'
 // include { prokka }                       from '../modules/prokka.nf'
 // include { bakta }                        from '../modules/bakta.nf'
 // include { bandage }                      from '../modules/long_read_qc.nf'
@@ -95,6 +96,8 @@ workflow AUTOCYCLER{
     combine_metrics(ch_read_metrics.join(ch_assembly_metrics))
 
     quast(ch_reoriented_assembly)
+
+    checkm2(ch_reoriented_assembly)
 
     bandage(ch_reoriented_assembly_graph)
 
